@@ -7,7 +7,6 @@ Generate your own meme tokens on Bitcoin using Glittr's powerful infrastructure!
 <img width="1440" alt="Screenshot 2024-11-12 at 2 58 04 PM" src="https://github.com/user-attachments/assets/8357359b-ae8f-4059-af6a-20e0b766f2bd">
 
 
-
 ## for testing 
 
 {
@@ -179,6 +178,10 @@ If you encounter network issues:
 - [ ] Community features
 - [ ] Token swap integration
 - [ ] Enhanced meme customization
+
+# explore
+
+https://hackathon-explorer.glittr.fi/tx/34259b9d2c53c9b0c27d81166954e3bc32472755134184be33cc191713402c9e
 
 ## 📞 Support
 
