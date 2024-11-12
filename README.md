@@ -2,7 +2,9 @@
 
 Generate your own meme tokens on Bitcoin using Glittr's powerful infrastructure! Built during the Glittr Hackathon 2024.
 
-![Meme Token Generator Demo](https://via.placeholder.com/800x400.png?text=Meme+Token+Generator)
+![Meme Token Generator Demo]<img width="1440" alt="Screenshot 2024-11-12 at 2 55 25 PM" src="https://github.com/user-attachments/assets/99c6c59a-197d-4174-93d3-d259a0adf1fc">
+
+
 
 ## 🌟 Features
 
