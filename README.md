@@ -11,13 +11,13 @@ Generate your own meme tokens on Bitcoin using Glittr's powerful infrastructure!
 ## for testing 
 
 {
-  wip : "cMqUkLHLtHJ4gSBdxAVtgFjMnHkUi5ZXkrsoBcpECGrE2tcJiNDh"
-  name: "GrumpyCat",
-  symbol: "GRUMP",
-  description: "NO. A token dedicated to the eternal grumpiness of the legendary Grumpy Cat.",
-  memeUrl: "https://i.imgur.com/yUfZuRe.jpeg",
-  totalSupply: 9000000000, // 9 billion tokens
-  amountPerMint: 888888 // Lucky number 8s
+- wip : "cMqUkLHLtHJ4gSBdxAVtgFjMnHkUi5ZXkrsoBcpECGrE2tcJiNDh"
+- name: "GrumpyCat",
+- symbol: "GRUMP",
+- description: "NO. A token dedicated to the eternal grumpiness of the legendary Grumpy Cat.",
+- memeUrl: "https://i.imgur.com/yUfZuRe.jpeg",
+- totalSupply: 9000000000, // 9 billion tokens
+- amountPerMint: 888888 // Lucky number 8s
 }
 ## 🌟 Features
 
