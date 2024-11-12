@@ -1,101 +1,272 @@
-import Image from "next/image";
+"use client"
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Rocket, Coins } from 'lucide-react';
+import { Account } from "@glittr-sdk/sdk";
+import { createMemeToken, mintMemeTokens, checkTokenBalance } from '../app/lib/contracts';
 
-export default function Home() {
+const MemeTokenGenerator = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    symbol: '',
+    description: '',
+    memeUrl: '',
+    totalSupply: 1000000,
+    amountPerMint: 1000,
+    wif: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [contractInfo, setContractInfo] = useState<{
+    txid: string;
+    blockHeight?: number;
+  } | null>(null);
+  const [assetInfo, setAssetInfo] = useState<string | null>(null);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleInputChange = (e: any) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const createToken = async (e: any) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const account = new Account({
+        wif: formData.wif,
+        network: "regtest"
+      });
+
+      const txid = await createMemeToken(account, {
+        name: formData.name,
+        symbol: formData.symbol,
+        description: formData.description,
+        memeUrl: formData.memeUrl,
+        totalSupply: formData.totalSupply,
+        amountPerMint: formData.amountPerMint
+      });
+
+      setMessage(`Token created successfully! Transaction ID: ${txid}`);
+      setContractInfo({ txid }); // Store contract info for minting
+      
+      // Wait a moment then check asset info
+      setTimeout(async () => {
+        const info = await checkTokenBalance(txid);
+        setAssetInfo(info);
+      }, 5000);
+
+    } catch (error) {
+      setMessage(`Error: ${error}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMint = async () => {
+    if (!contractInfo?.txid) {
+      setMessage('Please create a token first');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const account = new Account({
+        wif: formData.wif,
+        network: "regtest"
+      });
+
+      // Use block height if available, otherwise default to latest
+      const blockTxTuple: [number, number] = [
+        contractInfo.blockHeight || 101832, 
+        1
+      ];
+
+      const txid = await mintMemeTokens(account, blockTxTuple);
+      setMessage(`Tokens minted successfully! Transaction ID: ${txid}`);
+
+      // Update asset info after minting
+      const info = await checkTokenBalance(contractInfo.txid);
+      setAssetInfo(info);
+
+    } catch (error) {
+      setMessage(`Error minting tokens: ${error}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="max-w-4xl mx-auto p-4">
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Coins className="h-6 w-6" />
+            Meme Token Generator
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={createToken} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Bitcoin Private Key (WIF)</label>
+              <input
+                type="password"
+                name="wif"
+                className="w-full p-2 border rounded"
+                value={formData.wif}
+                onChange={handleInputChange}
+                placeholder="Enter your WIF"
+                required
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                Get test Bitcoin from: https://dev.glittr.fi/
+              </p>
+            </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+            <div>
+              <label className="block text-sm font-medium mb-1">Token Name</label>
+              <input
+                type="text"
+                name="name"
+                className="w-full p-2 border rounded"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="e.g., DogeMoon"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Token Symbol</label>
+              <input
+                type="text"
+                name="symbol"
+                className="w-full p-2 border rounded"
+                value={formData.symbol}
+                onChange={handleInputChange}
+                placeholder="e.g., DGMN"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Description</label>
+              <textarea
+                name="description"
+                className="w-full p-2 border rounded"
+                value={formData.description}
+                onChange={handleInputChange}
+                placeholder="Describe your meme token..."
+                rows={3}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Meme Image URL</label>
+              <input
+                type="url"
+                name="memeUrl"
+                className="w-full p-2 border rounded"
+                value={formData.memeUrl}
+                onChange={handleInputChange}
+                placeholder="https://your-meme-image.com"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Total Supply</label>
+                <input
+                  type="number"
+                  name="totalSupply"
+                  className="w-full p-2 border rounded"
+                  value={formData.totalSupply}
+                  onChange={handleInputChange}
+                  min="1"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Amount Per Mint</label>
+                <input
+                  type="number"
+                  name="amountPerMint"
+                  className="w-full p-2 border rounded"
+                  value={formData.amountPerMint}
+                  onChange={handleInputChange}
+                  min="1"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <button
+                type="submit"
+                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded flex items-center justify-center gap-2 hover:bg-blue-700 disabled:opacity-50"
+                disabled={loading}
+              >
+                <Rocket className="h-5 w-5" />
+                {loading ? 'Creating Token...' : 'Launch Token'}
+              </button>
+
+              {contractInfo?.txid && (
+                <button
+                  type="button"
+                  onClick={handleMint}
+                  className="flex-1 bg-green-600 text-white py-2 px-4 rounded flex items-center justify-center gap-2 hover:bg-green-700 disabled:opacity-50"
+                  disabled={loading}
+                >
+                  <Coins className="h-5 w-5" />
+                  {loading ? 'Minting...' : 'Mint Tokens'}
+                </button>
+              )}
+            </div>
+          </form>
+
+          {message && (
+            <Alert className="mt-4">
+              <AlertDescription>{message}</AlertDescription>
+            </Alert>
+          )}
+
+          {contractInfo?.txid && (
+            <Alert className="mt-4">
+              <AlertDescription>
+                <div>Contract Transaction ID: {contractInfo.txid}</div>
+                <div className="mt-2">
+                  Explorer Link:{' '}
+                  <a 
+                    href={`https://hackathon-explorer.glittr.fi/tx/${contractInfo.txid}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    View on Explorer
+                  </a>
+                </div>
+                {assetInfo && (
+                  <div className="mt-2">
+                    <div className="font-semibold">Asset Info:</div>
+                    <pre className="mt-1 p-2 bg-gray-100 rounded overflow-x-auto">
+                      {assetInfo}
+                    </pre>
+                  </div>
+                )}
+              </AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
-}
+};
+
+export default MemeTokenGenerator;
